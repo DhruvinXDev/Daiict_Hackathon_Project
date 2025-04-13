@@ -39,11 +39,6 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState('login');
   const { user, loginMutation, registerMutation } = useAuth();
 
-  // If already logged in, redirect to homepage
-  if (user) {
-    return <Redirect to="/" />;
-  }
-
   // Login form
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -52,10 +47,6 @@ export default function AuthPage() {
       password: '',
     },
   });
-
-  const handleLoginSubmit = (values: LoginFormValues) => {
-    loginMutation.mutate(values);
-  };
 
   // Register form
   const registerForm = useForm<RegisterFormValues>({
@@ -70,9 +61,18 @@ export default function AuthPage() {
     },
   });
 
+  const handleLoginSubmit = (values: LoginFormValues) => {
+    loginMutation.mutate(values);
+  };
+  
   const handleRegisterSubmit = (values: RegisterFormValues) => {
     registerMutation.mutate(values);
   };
+
+  // If already logged in, redirect to homepage
+  if (user) {
+    return <Redirect to="/" />;
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
