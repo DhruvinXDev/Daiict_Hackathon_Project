@@ -1,0 +1,323 @@
+Intelligent Virtual Career Advisor - Comprehensive Design & Feature Specification Request 
+
+Project Overview 
+
+I'm developing an Intelligent Virtual Career Advisor platform called "CareerVerse" that helps students navigate their career journey through multiple interconnected modules. The platform serves three user types: Students, Mentors, and Administrators. I need comprehensive UI/UX designs and feature specifications for all modules. 
+
+User Types 
+
+Students - Primary users seeking career guidance, skills development, and opportunities 
+
+Mentors - Industry professionals providing guidance, hosting webinars, and supporting students 
+
+Administrators - Platform managers who verify mentors, moderate content, and manage system 
+
+Core Modules & Required Design Elements 
+
+1. User Authentication & Integrated Dashboard-Profile System 
+
+Login/Registration screens with email verification 
+
+Initial Profile setup forms capturing: 
+
+Personal details (name, email, mobile) 
+
+Educational background (qualifications) 
+
+Skills (technical and soft) 
+
+Career interests and goals 
+
+Achievements 
+
+Practical experience 
+
+Integrated Dashboard-Profile view featuring: 
+
+Profile summary with quick-edit capabilities 
+
+Real-time progress tracking across all modules 
+
+Career path visualization 
+
+Upcoming events/webinars 
+
+Mentor connections 
+
+Quick access to all modules 
+
+Recent achievements 
+
+Recommended actions 
+
+Edit profile button/section with comprehensive editing options 
+
+Profile edit mode allowing users to update all profile components 
+
+Profile privacy settings controlling what information is visible to others 
+
+Mentor Dashboard-Profile Integration featuring: 
+
+Professional profile display with edit capabilities 
+
+Mentee management 
+
+Webinar scheduling/management 
+
+Message center 
+
+Performance analytics 
+
+Admin Dashboard featuring: 
+
+User management 
+
+Mentor verification queue 
+
+Content moderation tools 
+
+Platform analytics 
+
+2. Resume Module 
+
+Resume Builder Interface with:  
+
+Form-based section inputs (Personal Info, Objective, Education, Skills, etc.) 
+
+Drag-and-drop section reordering 
+
+Section add/remove functionality 
+
+Real-time preview panel 
+
+Resume Analyzer UI showing:  
+
+Grammar/tone suggestions 
+
+Action verb recommendations 
+
+Keyword highlights 
+
+ATS compliance indicators 
+
+Resume strength score (0-100) 
+
+Resume Updater interface 
+
+PDF Export functionality 
+
+Resume storage in user profile 
+
+3. Job Market Comparison Module 
+
+Trending Careers Dashboard with visual graphs 
+
+Career vs Career Comparator interface with:  
+
+Side-by-side comparison views 
+
+Salary range visualizations 
+
+Job opening metrics 
+
+Growth rate charts 
+
+Skill Gap Analysis visualization 
+
+Salary Insights with interactive charts 
+
+Location-Wise Job Density Map interface 
+
+4. Networking & Opportunities Module 
+
+Connection discovery interface 
+
+Mentor/Peer matching screens 
+
+Community Circles/Group Chats UI 
+
+Job Referrals system 
+
+LinkedIn Profile Enhancer interface 
+
+Virtual Networking Events calendar/registration 
+
+User Wall/Mini Social Feed design 
+
+5. Learning Module 
+
+Personalized subject recommendations interface 
+
+Interactive Quiz generation UI 
+
+Question Paper generator with settings panel 
+
+Learning resource library view 
+
+AI-powered learning assistant chat interface 
+
+6. Mentor Module 
+
+Smart Mentor Discovery interface with:  
+
+Search/filter controls 
+
+Mentor suggestion cards 
+
+Match percentage indicators 
+
+Direct Messaging & Chat UI 
+
+Session Booking System calendar interface 
+
+Mentor Profile Page layout 
+
+Student-Mentor Match Engine results display 
+
+Feedback & Rating System UI 
+
+Become a Mentor application form 
+
+7. Webinar & Notification Module 
+
+Webinar Discovery & Registration interface for students 
+
+Webinar Creation & Management console for mentors 
+
+Notification Center design 
+
+Reminder System UI 
+
+Webinar participation interface 
+
+Certificate download functionality 
+
+8. Roadmap Generator Module 
+
+Profile-based input gathering interface 
+
+Career roadmap visualization with timeline 
+
+Educational milestones display 
+
+Future Scope & Trends charts 
+
+Job Platform Tracking recommendations 
+
+9. Interview & Aptitude Preparation Module 
+
+Question Generator interface 
+
+Mock Interview Simulator UI 
+
+Aptitude Test interface with timer 
+
+Progress Tracker visualizations 
+
+Challenge of the Day feature 
+
+10. Skill Analysis & Checklist Module 
+
+Progress Overview dashboard 
+
+Skill Analysis visualization 
+
+Task Checklist interface 
+
+Achievements Display section 
+
+11. Settings Module 
+
+Notification preferences controls 
+
+Privacy settings interface 
+
+Account management options 
+
+Integration settings (Calendar, LinkedIn) 
+
+Theme/Accessibility options 
+
+User Flow Integration 
+
+Design the system so that: 
+
+The dashboard serves as the central hub but seamlessly integrates profile information 
+
+Profile editing can be accessed directly from the dashboard 
+
+Changes to the profile automatically update related modules (resume, roadmap, recommendations) 
+
+Real-time progress tracking is prominently displayed on the dashboard 
+
+Quick-edit options allow for immediate profile updates without navigating away from the dashboard 
+
+Design Requirements 
+
+Consistent Theme: Modern, professional design with intuitive navigation 
+
+Color Scheme: Career-focused, professional palette with clear hierarchy 
+
+Responsive Design: All interfaces must work on desktop and mobile devices 
+
+Accessibility: Support for various accessibility needs 
+
+Information Architecture: Clear navigation between interconnected modules 
+
+Interactive Elements: Engaging UI components that offer immediate feedback 
+
+Data Visualization: Professional charts, graphs, and progress indicators 
+
+Seamless Profile-Dashboard Integration: Profile information and editing capabilities smoothly integrated with dashboard functionality 
+
+Technical Context 
+
+Frontend: React with Tailwind CSS 
+
+Backend: Node.js/Django 
+
+Database: MongoDB/PostgreSQL 
+
+Integration needs with:  
+
+Google Calendar API 
+
+LinkedIn API 
+
+Socket.IO for real-time features 
+
+Firebase/JWT for authentication 
+
+Specific Design Requests 
+
+Create wireframes for key user flows (student onboarding, dashboard-profile integration, mentor application) 
+
+Design a cohesive navigation system that connects all modules 
+
+Create mobile-responsive versions of critical interfaces 
+
+Design data visualization components for analytics and progress tracking 
+
+Create a unified notification system that works across all modules 
+
+Design profile editing interfaces that are accessible from the dashboard 
+
+Deliverables Needed 
+
+High-fidelity mockups for primary interfaces 
+
+User flow diagrams showing navigation between modules 
+
+Component specifications (inputs, buttons, cards, etc.) 
+
+Style guide with color palette, typography, and UI components 
+
+Responsive design specifications 
+
+Interactive prototype demonstrating key user journeys 
+
+Dashboard-Profile integration mockups showing both overview and edit modes 
+
+The designs should emphasize intelligent career guidance through an engaging, data-driven, and personalized user experience. The dashboard should serve as both a command center for the user's career journey and a personal profile space that can be easily edited and updated. 
+
+ 
