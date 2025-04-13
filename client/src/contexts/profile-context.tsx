@@ -39,7 +39,7 @@ export const ProfileContext = createContext<ProfileContextType>({
 });
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   
   const {
     data: profile,
@@ -47,7 +47,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     error,
   } = useQuery<Profile>({
     queryKey: ["/api/profile"],
-    enabled: isAuthenticated && !!user,
+    enabled: !!user,
   });
   
   return (

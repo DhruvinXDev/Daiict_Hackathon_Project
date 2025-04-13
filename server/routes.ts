@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth } from "./auth";
 import { 
   insertUserSchema, 
   insertProfileSchema, 
@@ -12,41 +13,28 @@ import {
 import { z } from "zod";
 
 // Authentication middleware
-const authMiddleware = async (req: Request, res: Response, next: Function) => {
-  const userId = req.session?.userId;
-  
-  if (!userId) {
+const authMiddleware = (req: Request, res: Response, next: Function) => {
+  if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Unauthorized" });
   }
   
-  const user = await storage.getUser(userId);
-  if (!user) {
-    return res.status(401).json({ message: "User not found" });
-  }
-  
-  req.user = user;
   next();
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // User Authentication Routes
-  app.post("/api/auth/register", async (req, res) => {
+  // Setup authentication with Passport
+  setupAuth(app);
+  
+  // Create empty profile and default roadmap for newly registered users
+  app.post("/api/register", async (req, res, next) => {
+    // Registration is handled by setupAuth, but we need to create
+    // the profile and roadmap after a successful registration
     try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if email already exists
-      const existingEmail = await storage.getUserByEmail(userData.email);
-      if (existingEmail) {
-        return res.status(400).json({ message: "Email already in use" });
+      // We need to get the user that was just created
+      const user = req.user;
+      if (!user) {
+        return next();
       }
-      
-      // Check if username already exists
-      const existingUsername = await storage.getUserByUsername(userData.username);
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username already taken" });
-      }
-      
-      const user = await storage.createUser(userData);
       
       // Create empty profile for user
       await storage.createProfile({
@@ -85,71 +73,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentMilestone: 0
       });
       
-      // Set session
-      req.session.userId = user.id;
-      
-      // Return user without password
-      const { password, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
+      next();
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Server error" });
+      next(error);
     }
-  });
-  
-  app.post("/api/auth/login", async (req, res) => {
-    try {
-      const loginSchema = z.object({
-        email: z.string().email(),
-        password: z.string()
-      });
-      
-      const loginData = loginSchema.parse(req.body);
-      
-      const user = await storage.getUserByEmail(loginData.email);
-      if (!user || user.password !== loginData.password) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-      
-      // Set session
-      req.session.userId = user.id;
-      
-      // Return user without password
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Server error" });
-    }
-  });
-  
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy(err => {
-      if (err) {
-        return res.status(500).json({ message: "Could not log out" });
-      }
-      res.json({ message: "Logged out successfully" });
-    });
-  });
-  
-  app.get("/api/auth/me", async (req, res) => {
-    const userId = req.session?.userId;
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    // Return user without password
-    const { password, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
   });
   
   // Profile Routes

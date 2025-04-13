@@ -1,37 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import session from "express-session";
-import MemoryStore from "memorystore";
-
-// Create a memory store for sessions
-const MemoryStoreSession = MemoryStore(session);
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Add session middleware
-app.use(
-  session({
-    cookie: { maxAge: 86400000 }, // 24 hours
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000, // prune expired entries every 24h
-    }),
-    resave: false,
-    saveUninitialized: false,
-    secret: process.env.SESSION_SECRET || "career-verse-secret",
-  })
-);
-
-// Extend express request type to include user and session
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any;
-    }
-  }
-}
 
 app.use((req, res, next) => {
   const start = Date.now();
