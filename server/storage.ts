@@ -4,8 +4,13 @@ import {
   Resume, InsertResume,
   Roadmap, InsertRoadmap,
   Webinar, InsertWebinar,
-  Mentor, InsertMentor
+  Mentor, InsertMentor,
+  users, profiles, resumes, roadmaps, webinars, mentors
 } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import connectPg from "connect-pg-simple";
+import session from "express-session";
+import { pool, db } from "./db";
 
 export interface IStorage {
   // User operations
@@ -41,6 +46,9 @@ export interface IStorage {
   getMentorByUserId(userId: number): Promise<Mentor | undefined>;
   createMentor(mentor: InsertMentor): Promise<Mentor>;
   verifyMentor(id: number): Promise<Mentor | undefined>;
+  
+  // Session store
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
@@ -50,6 +58,8 @@ export class MemStorage implements IStorage {
   private roadmaps: Map<number, Roadmap>; // userId -> Roadmap
   private webinars: Map<number, Webinar>;
   private mentors: Map<number, Mentor>;
+  
+  sessionStore: session.Store;
   
   private userId: number;
   private profileId: number;
@@ -72,6 +82,11 @@ export class MemStorage implements IStorage {
     this.roadmapId = 1;
     this.webinarId = 1;
     this.mentorId = 1;
+    
+    const MemoryStore = require('memorystore')(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
     
     // Add sample webinars
     this.seedData();
@@ -246,4 +261,170 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database implementation
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+  
+  constructor() {
+    const PostgresSessionStore = connectPg(session);
+    this.sessionStore = new PostgresSessionStore({
+      pool: pool,
+      createTableIfMissing: true,
+    });
+  }
+  
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+  
+  // Profile operations
+  async getProfile(userId: number): Promise<Profile | undefined> {
+    const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId));
+    return profile;
+  }
+  
+  async createProfile(insertProfile: InsertProfile): Promise<Profile> {
+    const [profile] = await db.insert(profiles).values(insertProfile).returning();
+    return profile;
+  }
+  
+  async updateProfile(userId: number, profileUpdate: Partial<InsertProfile>): Promise<Profile | undefined> {
+    const [profile] = await db
+      .update(profiles)
+      .set(profileUpdate)
+      .where(eq(profiles.userId, userId))
+      .returning();
+    return profile;
+  }
+  
+  // Resume operations
+  async getResume(userId: number): Promise<Resume | undefined> {
+    const [resume] = await db.select().from(resumes).where(eq(resumes.userId, userId));
+    return resume;
+  }
+  
+  async createResume(insertResume: InsertResume): Promise<Resume> {
+    const [resume] = await db
+      .insert(resumes)
+      .values({
+        ...insertResume,
+        updatedAt: new Date(),
+      })
+      .returning();
+    return resume;
+  }
+  
+  async updateResume(id: number, resumeUpdate: Partial<InsertResume>): Promise<Resume | undefined> {
+    const [resume] = await db
+      .update(resumes)
+      .set({
+        ...resumeUpdate,
+        updatedAt: new Date(),
+      })
+      .where(eq(resumes.id, id))
+      .returning();
+    return resume;
+  }
+  
+  // Roadmap operations
+  async getRoadmap(userId: number): Promise<Roadmap | undefined> {
+    const [roadmap] = await db.select().from(roadmaps).where(eq(roadmaps.userId, userId));
+    return roadmap;
+  }
+  
+  async createRoadmap(insertRoadmap: InsertRoadmap): Promise<Roadmap> {
+    const [roadmap] = await db.insert(roadmaps).values(insertRoadmap).returning();
+    return roadmap;
+  }
+  
+  async updateRoadmap(userId: number, roadmapUpdate: Partial<InsertRoadmap>): Promise<Roadmap | undefined> {
+    const [roadmap] = await db
+      .update(roadmaps)
+      .set(roadmapUpdate)
+      .where(eq(roadmaps.userId, userId))
+      .returning();
+    return roadmap;
+  }
+  
+  // Webinar operations
+  async getWebinars(): Promise<Webinar[]> {
+    return await db.select().from(webinars);
+  }
+  
+  async getWebinar(id: number): Promise<Webinar | undefined> {
+    const [webinar] = await db.select().from(webinars).where(eq(webinars.id, id));
+    return webinar;
+  }
+  
+  async createWebinar(insertWebinar: InsertWebinar): Promise<Webinar> {
+    const [webinar] = await db.insert(webinars).values(insertWebinar).returning();
+    return webinar;
+  }
+  
+  async registerForWebinar(webinarId: number, userId: number): Promise<boolean> {
+    const webinar = await this.getWebinar(webinarId);
+    if (!webinar) return false;
+    
+    // Check if user is already registered
+    const registeredUsers = webinar.registeredUsers as number[];
+    if (registeredUsers.includes(userId)) return false;
+    
+    // Register user
+    const updatedUsers = [...registeredUsers, userId];
+    await db
+      .update(webinars)
+      .set({ registeredUsers: updatedUsers })
+      .where(eq(webinars.id, webinarId));
+      
+    return true;
+  }
+  
+  // Mentor operations
+  async getMentors(): Promise<Mentor[]> {
+    return await db.select().from(mentors).where(eq(mentors.verified, true));
+  }
+  
+  async getMentor(id: number): Promise<Mentor | undefined> {
+    const [mentor] = await db.select().from(mentors).where(eq(mentors.id, id));
+    return mentor;
+  }
+  
+  async getMentorByUserId(userId: number): Promise<Mentor | undefined> {
+    const [mentor] = await db.select().from(mentors).where(eq(mentors.userId, userId));
+    return mentor;
+  }
+  
+  async createMentor(insertMentor: InsertMentor): Promise<Mentor> {
+    const [mentor] = await db.insert(mentors).values(insertMentor).returning();
+    return mentor;
+  }
+  
+  async verifyMentor(id: number): Promise<Mentor | undefined> {
+    const [mentor] = await db
+      .update(mentors)
+      .set({ verified: true })
+      .where(eq(mentors.id, id))
+      .returning();
+    return mentor;
+  }
+}
+
+// Using the database implementation
+export const storage = new DatabaseStorage();
