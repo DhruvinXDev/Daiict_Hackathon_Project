@@ -2,6 +2,8 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 neonConfig.webSocketConstructor = ws;
 
@@ -13,3 +15,16 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
+
+// Verify database connection
+async function verifyConnection() {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    console.log('Database connection successful:', result.rows[0].now);
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    throw error;
+  }
+}
+
+verifyConnection();

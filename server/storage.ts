@@ -266,9 +266,10 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
   
   constructor() {
-    const PostgresSessionStore = connectPg(session);
-    this.sessionStore = new PostgresSessionStore({
+    const PgSession = connectPg(session);
+    this.sessionStore = new PgSession({
       pool: pool,
+      tableName: 'session',
       createTableIfMissing: true,
     });
   }
@@ -423,6 +424,16 @@ export class DatabaseStorage implements IStorage {
       .where(eq(mentors.id, id))
       .returning();
     return mentor;
+  }
+
+  private async logOperation(operation: string, details: any) {
+    console.log(`[Database Operation] ${operation}:`, details);
+    try {
+      // Your operation here
+    } catch (error) {
+      console.error(`[Database Error] ${operation}:`, error);
+      throw error;
+    }
   }
 }
 
