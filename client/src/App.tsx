@@ -16,6 +16,7 @@ import Webinars from "@/pages/webinars";
 import CareerRoadmap from "./pages/career-roadmap";
 import InterviewPrep from "./pages/interview-prep";
 import SkillAnalysis from "./pages/skill-analysis";
+import Settings from "./pages/settings";
 import AuthPage from "./components/auth/auth-page";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -78,6 +79,7 @@ function AuthenticatedRoutes() {
           <ProtectedRoute path="/career-roadmap" component={CareerRoadmap} />
           <ProtectedRoute path="/interview-prep" component={InterviewPrep} />
           <ProtectedRoute path="/skill-analysis" component={SkillAnalysis} />
+          <ProtectedRoute path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
       </ProfileProvider>

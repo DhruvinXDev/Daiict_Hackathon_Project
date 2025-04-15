@@ -15,6 +15,7 @@ const navigationItems = [
   { name: "Career Roadmap", path: "/career-roadmap", icon: "ri-road-map-line" },
   { name: "Interview Prep", path: "/interview-prep", icon: "ri-question-answer-line" },
   { name: "Skill Analysis", path: "/skill-analysis", icon: "ri-bar-chart-grouped-line" },
+  { name: "Settings", path: "/settings", icon: "ri-settings-3-line" },
 ];
 
 export default function MobileHeader() {

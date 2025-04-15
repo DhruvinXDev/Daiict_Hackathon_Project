@@ -84,6 +84,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(userWithoutPassword);
   });
   
+  // Get user profile by ID
+  app.get("/api/users/:id", authMiddleware, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Ensure user can only access their own profile
+      if (req.user && (req.user as UserType).id !== userId) {
+        return res.status(403).json({ message: "Forbidden: You can only access your own profile" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Don't send the password
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Update user profile
+  app.put("/api/users/:id", authMiddleware, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Ensure user can only update their own profile
+      if (req.user && (req.user as UserType).id !== userId) {
+        return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUser(userId, {
+        firstName: req.body.firstName || user.firstName,
+        lastName: req.body.lastName || user.lastName,
+        email: req.body.email || user.email,
+        phone: req.body.phone,
+        bio: req.body.bio,
+      });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user profile" });
+      }
+      
+      // Don't send the password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
   // Profile Routes
   app.get("/api/profile", authMiddleware, async (req, res) => {
     try {

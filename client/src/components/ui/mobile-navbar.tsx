@@ -6,6 +6,7 @@ const mobileNavItems = [
   { name: "Resume", path: "/resume-builder", icon: "ri-file-list-line" },
   { name: "Mentors", path: "/mentors", icon: "ri-user-star-line" },
   { name: "Roadmap", path: "/career-roadmap", icon: "ri-road-map-line" },
+  { name: "Settings", path: "/settings", icon: "ri-settings-3-line" },
 ];
 
 export default function MobileNavbar() {

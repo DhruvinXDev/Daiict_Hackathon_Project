@@ -14,11 +14,12 @@ const navigationItems = [
   { name: "Career Roadmap", path: "/career-roadmap", icon: "ri-road-map-line" },
   { name: "Interview Prep", path: "/interview-prep", icon: "ri-question-answer-line" },
   { name: "Skill Analysis", path: "/skill-analysis", icon: "ri-bar-chart-grouped-line" },
+  { name: "Settings", path: "/settings", icon: "ri-settings-3-line" },
 ];
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const isMobile = useIsMobile();
   
   if (isMobile) {
@@ -66,7 +67,7 @@ export default function Sidebar() {
           </ul>
         </div>
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center">
+          <div className="flex items-center mb-4">
             <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
               <span className="text-primary-700 font-medium">
                 {user?.firstName?.[0]}{user?.lastName?.[0]}
@@ -79,6 +80,13 @@ export default function Sidebar() {
               <p className="text-xs text-gray-500 capitalize">{user?.userType}</p>
             </div>
           </div>
+          <button
+            onClick={() => logoutMutation.mutate()}
+            className="flex items-center w-full p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-100"
+          >
+            <i className="ri-logout-box-line text-xl text-gray-500"></i>
+            <span className="ml-3">Logout</span>
+          </button>
         </div>
       </div>
     </aside>

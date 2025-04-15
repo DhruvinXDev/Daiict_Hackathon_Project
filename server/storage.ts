@@ -18,6 +18,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   
   // Profile operations
   getProfile(userId: number): Promise<Profile | undefined>;
@@ -111,6 +112,19 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id, createdAt };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUser(id: number, userUpdate: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = {
+      ...user,
+      ...userUpdate,
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
   
   // Profile operations
@@ -293,6 +307,21 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+  
+  async updateUser(id: number, userUpdate: Partial<InsertUser>): Promise<User | undefined> {
+    try {
+      const result = await db
+        .update(users)
+        .set(userUpdate)
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error("Error updating user:", error);
+      return undefined;
+    }
   }
   
   // Profile operations
