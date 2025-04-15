@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { Mentor } from "@/types";
+import { Checkbox } from "@/components/ui/checkbox";
+
 
 // Sample mentors data
 const mentorsData: Mentor[] = [
@@ -144,10 +146,11 @@ export default function Mentors() {
   const [activeTab, setActiveTab] = useState("discover");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
-  const [filterSpecialization, setFilterSpecialization] = useState<string>("");
-  const [bookingMentor, setBookingMentor] = useState<Mentor | null>(null);
+  const [filterSpecialization, setFilterSpecialization] = useState<string | undefined>(undefined);  const [bookingMentor, setBookingMentor] = useState<Mentor | null>(null);
   const [bookingDate, setBookingDate] = useState<Date | undefined>(undefined);
-  const [bookingTime, setBookingTime] = useState<string>("");
+  const [bookingTime, setBookingTime] = useState<string | undefined>(undefined);
+
+
   const [bookingTopic, setBookingTopic] = useState("");
   const [messageContent, setMessageContent] = useState("");
   
@@ -158,8 +161,7 @@ export default function Mentors() {
       mentor.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mentor.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mentor.specialization.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesFilter = filterSpecialization === "" || 
+      const matchesFilter = filterSpecialization === undefined || 
       mentor.specialization.some(skill => skill.toLowerCase() === filterSpecialization.toLowerCase());
     
     return matchesSearch && matchesFilter;
@@ -264,7 +266,7 @@ export default function Mentors() {
                     <SelectValue placeholder="Filter by specialty" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Specializations</SelectItem>
+                  <SelectItem value="all">All Specializations</SelectItem>
                     <SelectItem value="React">React</SelectItem>
                     <SelectItem value="Node.js">Node.js</SelectItem>
                     <SelectItem value="Python">Python</SelectItem>
@@ -747,9 +749,9 @@ export default function Mentors() {
                           <SelectItem key={time} value={time}>{time}</SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>
-                          No available times for this date
-                        </SelectItem>
+                        <SelectItem value="no-times-available" disabled>
+  No available times for this date
+</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -780,7 +782,7 @@ export default function Mentors() {
               </Button>
               <Button 
                 onClick={handleBookSession}
-                disabled={!bookingDate || !bookingTime || !bookingTopic.trim()}
+                disabled={!bookingDate || !bookingTime || bookingTime === "no-times-available" || !bookingTopic.trim()}
               >
                 Book Session
               </Button>

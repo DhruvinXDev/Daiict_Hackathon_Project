@@ -142,8 +142,12 @@ export default function Webinars() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [levelFilter, setLevelFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [levelFilter, setLevelFilter] = useState("all");
+
+
+
+
   const [selectedWebinar, setSelectedWebinar] = useState<Webinar | null>(null);
   
   // In a real implementation, this would fetch from the API
@@ -200,8 +204,8 @@ export default function Webinars() {
         webinar.speakerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         webinar.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesCategory = categoryFilter === "" || webinar.category === categoryFilter;
-      const matchesLevel = levelFilter === "" || webinar.level === levelFilter;
+        const matchesCategory = categoryFilter === "all" || webinar.category === categoryFilter;
+        const matchesLevel = levelFilter === "all" || webinar.level === levelFilter;
       
       return matchesSearch && matchesCategory && matchesLevel;
     });
@@ -502,7 +506,7 @@ export default function Webinars() {
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="Web Development">Web Development</SelectItem>
                   <SelectItem value="Data Science">Data Science</SelectItem>
                   <SelectItem value="Design">Design</SelectItem>
@@ -516,7 +520,8 @@ export default function Webinars() {
                   <SelectValue placeholder="All Levels" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Levels</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
+
                   <SelectItem value="Beginner">Beginner</SelectItem>
                   <SelectItem value="Intermediate">Intermediate</SelectItem>
                   <SelectItem value="Advanced">Advanced</SelectItem>

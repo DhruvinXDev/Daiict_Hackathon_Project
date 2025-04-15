@@ -142,11 +142,11 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function JobMarket() {
   const [selectedRole, setSelectedRole] = useState("fullstack");
-  const [compareRole, setCompareRole] = useState("");
+  const [compareRole, setCompareRole] = useState("none");
   const [activeTab, setActiveTab] = useState("trending");
   
   const currentRole = jobMarketData[selectedRole];
-  const comparisonRole = compareRole ? jobMarketData[compareRole] : null;
+  const comparisonRole = compareRole !== "none" ? jobMarketData[compareRole] : null;
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -311,7 +311,7 @@ export default function JobMarket() {
                       <SelectValue placeholder="Select a role to compare" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {Object.entries(jobMarketData).map(([key, data]) => (
                         key !== selectedRole && <SelectItem key={key} value={key}>{data.role}</SelectItem>
                       ))}
@@ -353,8 +353,8 @@ export default function JobMarket() {
             <CardHeader>
               <CardTitle>Career Metrics Comparison</CardTitle>
               <CardDescription>
-                Key metrics for {currentRole.role}{compareRole && ` compared to ${comparisonRole?.role}`}
-              </CardDescription>
+  Key metrics for {currentRole.role}{compareRole !== "none" && comparisonRole ? ` compared to ${comparisonRole.role}` : ''}
+</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -363,13 +363,15 @@ export default function JobMarket() {
                   <h3 className="text-2xl font-bold text-gray-900">
                     {formatCurrency(currentRole.salaryRange.median)}
                   </h3>
-                  {compareRole && (
-                    <p className={`text-sm mt-1 ${comparisonRole!.salaryRange.median > currentRole.salaryRange.median ? 'text-red-500' : 'text-green-500'}`}>
-                      {comparisonRole!.salaryRange.median > currentRole.salaryRange.median ? '↓' : '↑'} 
-                      {' '}
-                      {formatCurrency(Math.abs(comparisonRole!.salaryRange.median - currentRole.salaryRange.median))} difference
-                    </p>
-                  )}
+                  {compareRole !== "none" && comparisonRole && (
+  <p className={`text-sm mt-1 ${comparisonRole.openings > currentRole.openings ? 'text-red-500' : 'text-green-500'}`}>
+    {comparisonRole.openings > currentRole.openings ? '↓' : '↑'} 
+    {' '}
+    {formatWithK(Math.abs(comparisonRole.openings - currentRole.openings))} difference
+  </p>
+)}
+
+
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-gray-200">
@@ -377,7 +379,7 @@ export default function JobMarket() {
                   <h3 className="text-2xl font-bold text-gray-900">
                     {formatWithK(currentRole.openings)}
                   </h3>
-                  {compareRole && (
+                  {compareRole !== "none" && comparisonRole && (
                     <p className={`text-sm mt-1 ${comparisonRole!.openings > currentRole.openings ? 'text-red-500' : 'text-green-500'}`}>
                       {comparisonRole!.openings > currentRole.openings ? '↓' : '↑'} 
                       {' '}
@@ -391,7 +393,7 @@ export default function JobMarket() {
                   <h3 className="text-2xl font-bold text-gray-900">
                     {currentRole.growthRate}%
                   </h3>
-                  {compareRole && (
+                  {compareRole !== "none" && comparisonRole && (
                     <p className={`text-sm mt-1 ${comparisonRole!.growthRate > currentRole.growthRate ? 'text-red-500' : 'text-green-500'}`}>
                       {comparisonRole!.growthRate > currentRole.growthRate ? '↓' : '↑'} 
                       {' '}
@@ -401,7 +403,7 @@ export default function JobMarket() {
                 </div>
               </div>
 
-              {compareRole && (
+              {compareRole !== "none" && comparisonRole &&(
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart

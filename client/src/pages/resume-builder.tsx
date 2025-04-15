@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { Resume, ResumeContent } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
+import React from "react";
 
 // Schema for resume form
 const resumeSchema = z.object({
