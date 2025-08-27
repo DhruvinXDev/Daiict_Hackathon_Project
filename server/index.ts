@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./auth"; // ✅ ADD THIS LINE
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
@@ -13,6 +14,36 @@ console.log('Session Secret configured:', !!process.env.SESSION_SECRET);
 
 // ✅ Add auth setup here before routes
 setupAuth(app);
+
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Test storage endpoint
+app.get("/api/test-storage", (req, res) => {
+  try {
+    res.json({ 
+      status: "ok",
+      storageType: storage.constructor.name,
+      sessionStoreType: storage.sessionStore.constructor.name,
+      message: "Storage is working"
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error && process.env.NODE_ENV === 'development' ? error.stack : undefined;
+    
+    res.status(500).json({ 
+      status: "error",
+      error: errorMessage,
+      stack: errorStack
+    });
+  }
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -55,7 +86,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  console.log('Starting server setup...');
   const server = await registerRoutes(app);
+  console.log('Routes registered successfully');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Error:', err);
@@ -80,15 +113,11 @@ app.use((req, res, next) => {
     for (let port = startPort; port < startPort + 10; port++) {
       try {
         await new Promise((resolve, reject) => {
-          server.listen({
-            port,
-            host: "0.0.0.0",
-            reusePort: true,
-          }, () => {
-            log(`Server running on port ${port}`);
+          server.listen(port, '127.0.0.1', () => {
+            log(`Server running on http://127.0.0.1:${port}`);
             resolve(port);
           }).once('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
+            if (err instanceof Error && 'code' in err && err.code === 'EADDRINUSE') {
               log(`Port ${port} is in use, trying next port...`);
               resolve(false);
             } else {

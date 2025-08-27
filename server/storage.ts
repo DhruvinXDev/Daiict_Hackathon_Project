@@ -70,6 +70,8 @@ export class MemStorage implements IStorage {
   private mentorId: number;
   
   constructor() {
+    console.log('Initializing MemStorage...');
+    
     this.users = new Map();
     this.profiles = new Map();
     this.resumes = new Map();
@@ -84,13 +86,26 @@ export class MemStorage implements IStorage {
     this.webinarId = 1;
     this.mentorId = 1;
     
-    const MemoryStore = require('memorystore')(session);
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    console.log('Creating session store...');
+    try {
+      const MemoryStore = require('memorystore')(session);
+      this.sessionStore = new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      });
+      console.log('Session store created successfully');
+    } catch (error) {
+      console.error('Failed to create MemoryStore:', error);
+      // Fallback to basic memory store
+      this.sessionStore = new session.MemoryStore();
+      console.log('Using fallback MemoryStore');
+    }
+    
+    // Add sample webinars (fire and forget)
+    this.seedData().catch(error => {
+      console.error('Error in seedData:', error);
     });
     
-    // Add sample webinars
-    this.seedData();
+    console.log('MemStorage initialization complete');
   }
   
   // User operations
@@ -107,10 +122,23 @@ export class MemStorage implements IStorage {
   }
   
   async createUser(insertUser: InsertUser): Promise<User> {
+    console.log('MemStorage.createUser called with:', insertUser);
+    
     const id = this.userId++;
     const createdAt = new Date();
-    const user: User = { ...insertUser, id, createdAt };
+          const user: User = { 
+        ...insertUser, 
+        id, 
+        createdAt,
+        phone: insertUser.phone || null,
+        bio: insertUser.bio || null
+      };
+    
+    console.log('Created user object:', user);
+    
     this.users.set(id, user);
+    console.log('User stored in Map, total users:', this.users.size);
+    
     return user;
   }
   
@@ -134,7 +162,11 @@ export class MemStorage implements IStorage {
   
   async createProfile(insertProfile: InsertProfile): Promise<Profile> {
     const id = this.profileId++;
-    const profile: Profile = { ...insertProfile, id };
+         const profile: Profile = { 
+       ...insertProfile, 
+       id,
+       completionPercentage: insertProfile.completionPercentage || 0
+     };
     this.profiles.set(id, profile);
     return profile;
   }
@@ -157,7 +189,13 @@ export class MemStorage implements IStorage {
     const id = this.resumeId++;
     const createdAt = new Date();
     const updatedAt = new Date();
-    const resume: Resume = { ...insertResume, id, createdAt, updatedAt };
+         const resume: Resume = { 
+       ...insertResume, 
+       id, 
+       createdAt, 
+       updatedAt,
+       score: insertResume.score || null
+     };
     this.resumes.set(id, resume);
     return resume;
   }
@@ -179,7 +217,11 @@ export class MemStorage implements IStorage {
   
   async createRoadmap(insertRoadmap: InsertRoadmap): Promise<Roadmap> {
     const id = this.roadmapId++;
-    const roadmap: Roadmap = { ...insertRoadmap, id };
+         const roadmap: Roadmap = { 
+       ...insertRoadmap, 
+       id,
+       currentMilestone: insertRoadmap.currentMilestone || null
+     };
     this.roadmaps.set(id, roadmap);
     return roadmap;
   }
@@ -204,7 +246,11 @@ export class MemStorage implements IStorage {
   
   async createWebinar(insertWebinar: InsertWebinar): Promise<Webinar> {
     const id = this.webinarId++;
-    const webinar: Webinar = { ...insertWebinar, id };
+         const webinar: Webinar = { 
+       ...insertWebinar, 
+       id,
+       registeredUsers: insertWebinar.registeredUsers || []
+     };
     this.webinars.set(id, webinar);
     return webinar;
   }
@@ -238,7 +284,12 @@ export class MemStorage implements IStorage {
   
   async createMentor(insertMentor: InsertMentor): Promise<Mentor> {
     const id = this.mentorId++;
-    const mentor: Mentor = { ...insertMentor, id };
+         const mentor: Mentor = { 
+       ...insertMentor, 
+       id,
+       availability: insertMentor.availability || {},
+       verified: insertMentor.verified || false
+     };
     this.mentors.set(id, mentor);
     return mentor;
   }
@@ -253,25 +304,29 @@ export class MemStorage implements IStorage {
   }
   
   // Seed some initial data
-  private seedData() {
-    // Sample webinars
-    this.createWebinar({
-      title: "Mastering Modern Frontend Development",
-      description: "Learn about the latest trends and best practices in frontend development.",
-      speakerName: "John Miller",
-      speakerTitle: "Senior Frontend Developer",
-      date: new Date(Date.now() + 86400000), // Tomorrow
-      registeredUsers: [],
-    });
-    
-    this.createWebinar({
-      title: "Technical Interview Strategies",
-      description: "Prepare for technical interviews with proven strategies and tips.",
-      speakerName: "Emma Richards",
-      speakerTitle: "Tech Recruiter",
-      date: new Date(Date.now() + 86400000 * 3), // 3 days later
-      registeredUsers: [],
-    });
+  private async seedData() {
+    try {
+      // Sample webinars
+      await this.createWebinar({
+        title: "Mastering Modern Frontend Development",
+        description: "Learn about the latest trends and best practices in frontend development.",
+        speakerName: "John Miller",
+        speakerTitle: "Senior Frontend Developer",
+        date: new Date(Date.now() + 86400000), // Tomorrow
+        registeredUsers: [],
+      });
+      
+      await this.createWebinar({
+        title: "Technical Interview Strategies",
+        description: "Prepare for technical interviews with proven strategies and tips.",
+        speakerName: "Emma Richards",
+        speakerTitle: "Tech Recruiter",
+        date: new Date(Date.now() + 86400000 * 3), // 3 days later
+        registeredUsers: [],
+      });
+    } catch (error) {
+      console.error('Error seeding data:', error);
+    }
   }
 }
 
@@ -280,6 +335,10 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
   
   constructor() {
+    if (!pool) {
+      throw new Error('Database pool not available');
+    }
+    
     const PgSession = connectPg(session);
     this.sessionStore = new PgSession({
       pool: pool,
@@ -466,5 +525,27 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Using the database implementation
-export const storage = new DatabaseStorage();
+// Use in-memory storage for development when database is not available
+let storageInstance: IStorage;
+
+// Respect USE_DB env flag: only use DB when explicitly enabled and available
+const shouldUseDb = process.env.USE_DB === 'true';
+
+// Check if database is actually available
+if (shouldUseDb && pool && db) {
+  try {
+    // Try to use database storage
+    storageInstance = new DatabaseStorage();
+    console.log('Using database storage');
+  } catch (error) {
+    console.log('Database storage failed, using in-memory storage:', error instanceof Error ? error.message : 'Unknown error');
+    storageInstance = new MemStorage();
+    console.log('In-memory storage initialized successfully');
+  }
+} else {
+  console.log('Using in-memory storage (USE_DB not true or DB unavailable)');
+  storageInstance = new MemStorage();
+  console.log('In-memory storage initialized successfully');
+}
+
+export const storage = storageInstance;

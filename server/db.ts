@@ -7,24 +7,30 @@ dotenv.config();
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Only create database connection if DATABASE_URL is available
+let pool: Pool | null = null;
+let db: any = null;
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle(pool, { schema });
-
-// Verify database connection
-async function verifyConnection() {
+if (process.env.DATABASE_URL) {
   try {
-    const result = await pool.query('SELECT NOW()');
-    console.log('Database connection successful:', result.rows[0].now);
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    db = drizzle(pool, { schema });
+    
+    // Verify database connection
+    pool.query('SELECT NOW()')
+      .then(result => {
+        console.log('Database connection successful:', result.rows[0].now);
+      })
+      .catch(error => {
+        console.error('Database connection failed:', error);
+        console.log('Falling back to in-memory storage');
+      });
   } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
+    console.error('Failed to initialize database:', error);
+    console.log('Falling back to in-memory storage');
   }
+} else {
+  console.log('No DATABASE_URL provided, using in-memory storage');
 }
 
-verifyConnection();
+export { pool, db };

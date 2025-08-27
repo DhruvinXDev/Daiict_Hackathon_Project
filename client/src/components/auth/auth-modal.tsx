@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  username: z.string().min(1, "Username is required"),
   password: z.string().min(6, "Password must be at least 6 characters")
 });
 
@@ -36,12 +36,12 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthModal() {
   const [tab, setTab] = useState<string>("login");
-  const { login, register, isLoading } = useAuth();
+  const { loginMutation, registerMutation } = useAuth();
   
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: ""
     }
   });
@@ -60,11 +60,14 @@ export default function AuthModal() {
   });
   
   const onLoginSubmit = async (data: LoginFormValues) => {
-    await login(data.email, data.password);
+    await loginMutation.mutateAsync({
+      username: data.username,
+      password: data.password
+    });
   };
   
   const onRegisterSubmit = async (data: RegisterFormValues) => {
-    await register({
+    await registerMutation.mutateAsync({
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
@@ -98,14 +101,14 @@ export default function AuthModal() {
                 <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                   <FormField
                     control={loginForm.control}
-                    name="email"
+                    name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel>Username</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="you@example.com" 
-                            type="email"
+                            placeholder="Enter your username" 
+                            type="text"
                             {...field}
                           />
                         </FormControl>
@@ -140,9 +143,9 @@ export default function AuthModal() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={isLoading}
+                    disabled={loginMutation.isPending}
                   >
-                    {isLoading ? "Signing in..." : "Sign In"}
+                    {loginMutation.isPending ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </Form>
@@ -295,9 +298,9 @@ export default function AuthModal() {
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={isLoading}
+                    disabled={registerMutation.isPending}
                   >
-                    {isLoading ? "Creating Account..." : "Create Account"}
+                    {registerMutation.isPending ? "Creating Account..." : "Create Account"}
                   </Button>
                 </form>
               </Form>

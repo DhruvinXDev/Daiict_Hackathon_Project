@@ -1,7 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
 import { 
   insertUserSchema, 
   insertProfileSchema, 
@@ -11,9 +10,7 @@ import {
   insertMentorSchema
 } from "@shared/schema";
 import { z } from "zod";
-import passport from "passport";
 import { User as UserType } from "@shared/schema";
-import { hashPassword } from "./auth";
 
 // Authentication middleware
 const authMiddleware = (req: Request, res: Response, next: Function) => {
@@ -25,64 +22,9 @@ const authMiddleware = (req: Request, res: Response, next: Function) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication with Passport
-  setupAuth(app);
+  // Authentication is already set up in setupAuth() called from index.ts
   
   // Create empty profile and default roadmap for newly registered users
-  app.post("/api/register", async (req, res, next) => {
-    try {
-      // Check if user exists
-      const existingUser = await storage.getUserByUsername(req.body.username);
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-
-      // Create user
-      const hashedPassword = await hashPassword(req.body.password);
-      const user = await storage.createUser({
-        ...req.body,
-        password: hashedPassword,
-      });
-
-      // Login the user
-      req.login(user, (err) => {
-        if (err) return next(err);
-        const { password, ...userWithoutPassword } = user;
-        res.status(201).json(userWithoutPassword);
-      });
-    } catch (err) {
-      next(err);
-    }
-  });
-  
-  app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: UserType | false) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-      
-      req.login(user, (err) => {
-        if (err) return next(err);
-        const { password, ...userWithoutPassword } = user;
-        res.json(userWithoutPassword);
-      });
-    })(req, res, next);
-  });
-  
-  app.post("/api/logout", (req, res) => {
-    req.logout(() => {
-      res.sendStatus(200);
-    });
-  });
-  
-  app.get("/api/user", (req, res) => {
-    if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    const { password, ...userWithoutPassword } = req.user as UserType;
-    res.json(userWithoutPassword);
-  });
   
   // Get user profile by ID
   app.get("/api/users/:id", authMiddleware, async (req, res) => {
@@ -146,6 +88,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Profile Routes
   app.get("/api/profile", authMiddleware, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const profile = await storage.getProfile(req.user.id);
       if (!profile) {
         return res.status(404).json({ message: "Profile not found" });
@@ -163,6 +108,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updateSchema = insertProfileSchema.partial();
       const profileData = updateSchema.parse(req.body);
       
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const updatedProfile = await storage.updateProfile(req.user.id, profileData);
       if (!updatedProfile) {
         return res.status(404).json({ message: "Profile not found" });
@@ -180,6 +128,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Resume Routes
   app.get("/api/resume", authMiddleware, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const resume = await storage.getResume(req.user.id);
       if (!resume) {
         return res.status(404).json({ message: "Resume not found" });
@@ -193,6 +144,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/resume", authMiddleware, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const resumeData = insertResumeSchema.parse({
         ...req.body,
         userId: req.user.id
@@ -236,6 +190,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Roadmap Routes
   app.get("/api/roadmap", authMiddleware, async (req, res) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const roadmap = await storage.getRoadmap(req.user.id);
       if (!roadmap) {
         return res.status(404).json({ message: "Roadmap not found" });
@@ -282,6 +239,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid webinar ID" });
       }
       
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const success = await storage.registerForWebinar(id, req.user.id);
       if (!success) {
         return res.status(400).json({ message: "Failed to register for webinar" });
@@ -324,6 +284,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/mentors", authMiddleware, async (req, res) => {
     try {
       // Check if user is already a mentor
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
       const existingMentor = await storage.getMentorByUserId(req.user.id);
       if (existingMentor) {
         return res.status(400).json({ message: "You are already registered as a mentor" });

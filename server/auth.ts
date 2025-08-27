@@ -29,22 +29,34 @@ export async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'default_secret_key',
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax'
-    },
-    name: 'sid'
-  };
+  console.log('Setting up authentication...');
+  console.log('Session secret configured:', !!process.env.SESSION_SECRET);
+  console.log('Storage type:', storage.constructor.name);
+  console.log('Session store type:', storage.sessionStore.constructor.name);
+  
+  try {
+    const sessionSettings: session.SessionOptions = {
+      secret: process.env.SESSION_SECRET || 'default_secret_key',
+      resave: false,
+      saveUninitialized: false,
+      store: storage.sessionStore,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'lax'
+      },
+      name: 'sid'
+    };
 
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
+    app.use(session(sessionSettings));
+    app.use(passport.initialize());
+    app.use(passport.session());
+    
+    console.log('Authentication setup complete');
+  } catch (error) {
+    console.error('Error setting up authentication:', error);
+    throw error;
+  }
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
@@ -90,25 +102,58 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
+    console.log('Registration request received:', { 
+      username: req.body.username, 
+      email: req.body.email,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      userType: req.body.userType,
+      phone: req.body.phone,
+      bio: req.body.bio
+    });
+    console.log('Full request body:', req.body);
+    
     try {
+      // Validate required fields
+      const { username, email, password, firstName, lastName } = req.body;
+      
+      if (!username || !email || !password || !firstName || !lastName) {
+        console.log('Missing required fields');
+        return res.status(400).json({ 
+          error: "Missing required fields: username, email, password, firstName, lastName" 
+        });
+      }
+
       // Check if user exists
-      const existingUser = await storage.getUserByUsername(req.body.username);
+      const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
+        console.log('Username already exists:', username);
         return res.status(400).json({ error: "Username already exists" });
       }
 
       // Also check email
-      const existingEmail = await storage.getUserByEmail(req.body.email);
+      const existingEmail = await storage.getUserByEmail(email);
       if (existingEmail) {
+        console.log('Email already exists:', email);
         return res.status(400).json({ error: "Email already exists" });
       }
 
       // Create user with hashed password
-      const hashedPassword = await hashPassword(req.body.password);
+      const hashedPassword = await hashPassword(password);
+      console.log('Creating user with username:', username);
+      
       const user = await storage.createUser({
-        ...req.body,
+        username,
+        email,
         password: hashedPassword,
+        firstName,
+        lastName,
+        userType: req.body.userType || 'student', // Add userType field
+        phone: req.body.phone || null,
+        bio: req.body.bio || null,
       });
+
+      console.log('User created successfully:', user.id);
 
       // Login the user
       req.login(user, (err) => {
@@ -118,14 +163,56 @@ export function setupAuth(app: Express) {
         res.status(201).json(userWithoutPassword);
       });
     } catch (err) {
-      next(err);
+      console.error('Registration error:', err);
+      
+      // Handle error properly with type checking
+      if (err instanceof Error) {
+        console.error('Error stack:', err.stack);
+        console.error('Error message:', err.message);
+        
+        // Send a more specific error response
+        if (err.message && err.message.includes('validation')) {
+          return res.status(400).json({ error: err.message });
+        }
+        
+        res.status(500).json({ 
+          error: "Internal server error during registration",
+          details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+      } else {
+        console.error('Unknown error type:', err);
+        res.status(500).json({ 
+          error: "Internal server error during registration",
+          details: process.env.NODE_ENV === 'development' ? 'Unknown error type' : undefined
+        });
+      }
     }
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: UserType | false, info: object) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    console.log('Login request received for username:', req.body.username);
+    
+    // Validate required fields
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      console.log('Missing required fields for login');
+      return res.status(400).json({ 
+        error: "Missing required fields: username and password" 
+      });
+    }
+
+    passport.authenticate("local", (err: Error | null, user: UserType | false, info: any) => {
+      if (err) {
+        console.error('Passport authentication error:', err);
+        return next(err);
+      }
+      if (!user) {
+        console.log('Invalid credentials for username:', username);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      
+      console.log('User authenticated successfully:', user.username);
       
       req.login(user, (err) => {
         if (err) return next(err);
