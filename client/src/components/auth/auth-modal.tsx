@@ -79,21 +79,21 @@ export default function AuthModal() {
   
   return (
     <Dialog open={true}>
-      <DialogContent className="sm:max-w-md p-0">
+      <DialogContent className="sm:max-w-md p-0 bg-card border-border">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center">
-              <div className="bg-primary-600 text-white p-2 rounded-lg">
+              <div className="bg-primary text-primary-foreground p-2 rounded-lg">
                 <i className="ri-rocket-2-fill text-xl"></i>
               </div>
-              <h2 className="text-2xl font-semibold font-accent ml-2">CareerVerse</h2>
+              <h2 className="text-2xl font-semibold font-accent ml-2 text-foreground">CareerVerse</h2>
             </div>
           </div>
           
           <Tabs defaultValue="login" value={tab} onValueChange={setTab}>
-            <TabsList className="grid grid-cols-2 mb-4">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsList className="grid grid-cols-2 mb-4 bg-muted">
+              <TabsTrigger value="login" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Login</TabsTrigger>
+              <TabsTrigger value="register" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Register</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
@@ -104,11 +104,12 @@ export default function AuthModal() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel className="text-foreground">Username</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="Enter your username" 
                             type="text"
+                            className="border-border bg-background text-foreground"
                             {...field}
                           />
                         </FormControl>
@@ -122,16 +123,17 @@ export default function AuthModal() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel className="text-foreground">Password</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="••••••••" 
                             type="password"
+                            className="border-border bg-background text-foreground"
                             {...field}
                           />
                         </FormControl>
                         <div className="flex justify-end mt-1">
-                          <a href="#" className="text-sm text-primary-600 hover:text-primary-800">
+                          <a href="#" className="text-sm text-primary hover:text-primary/80">
                             Forgot password?
                           </a>
                         </div>
@@ -142,7 +144,7 @@ export default function AuthModal() {
                   
                   <Button 
                     type="submit" 
-                    className="w-full"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={loginMutation.isPending}
                   >
                     {loginMutation.isPending ? "Signing in..." : "Sign In"}
@@ -150,13 +152,13 @@ export default function AuthModal() {
                 </form>
               </Form>
               
-              <div className="mt-4 text-center text-sm text-gray-500">
+              <div className="mt-4 text-center text-sm text-muted-foreground">
                 Or continue with
               </div>
               <div className="flex space-x-2 mt-3">
                 <Button 
                   variant="outline" 
-                  className="flex-1" 
+                  className="flex-1 border-border text-foreground hover:bg-muted" 
                   type="button"
                 >
                   <i className="ri-google-fill text-lg mr-2 text-red-500"></i>
@@ -164,7 +166,7 @@ export default function AuthModal() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="flex-1" 
+                  className="flex-1 border-border text-foreground hover:bg-muted" 
                   type="button"
                 >
                   <i className="ri-linkedin-fill text-lg mr-2 text-blue-700"></i>
@@ -182,9 +184,9 @@ export default function AuthModal() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name</FormLabel>
+                          <FormLabel className="text-foreground">First Name</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} className="border-border bg-background text-foreground" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -195,9 +197,9 @@ export default function AuthModal() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name</FormLabel>
+                          <FormLabel className="text-foreground">Last Name</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} className="border-border bg-background text-foreground" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -210,9 +212,9 @@ export default function AuthModal() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel className="text-foreground">Email Address</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input type="email" {...field} className="border-border bg-background text-foreground" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -224,9 +226,9 @@ export default function AuthModal() {
                     name="username"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel className="text-foreground">Username</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} className="border-border bg-background text-foreground" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -238,9 +240,9 @@ export default function AuthModal() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Password</FormLabel>
+                        <FormLabel className="text-foreground">Password</FormLabel>
                         <FormControl>
-                          <Input type="password" {...field} />
+                          <Input type="password" {...field} className="border-border bg-background text-foreground" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -252,7 +254,7 @@ export default function AuthModal() {
                     name="userType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>I am a:</FormLabel>
+                        <FormLabel className="text-foreground">I am a:</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
@@ -260,12 +262,12 @@ export default function AuthModal() {
                             className="flex space-x-4"
                           >
                             <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="student" id="student" />
-                              <Label htmlFor="student">Student</Label>
+                              <RadioGroupItem value="student" id="student" className="border-border" />
+                              <Label htmlFor="student" className="text-foreground">Student</Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="mentor" id="mentor" />
-                              <Label htmlFor="mentor">Mentor</Label>
+                              <RadioGroupItem value="mentor" id="mentor" className="border-border" />
+                              <Label htmlFor="mentor" className="text-foreground">Mentor</Label>
                             </div>
                           </RadioGroup>
                         </FormControl>
@@ -283,11 +285,12 @@ export default function AuthModal() {
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            className="border-border"
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm text-gray-600">
-                            I agree to the <a href="#" className="text-primary-600 hover:underline">Terms of Service</a> and <a href="#" className="text-primary-600 hover:underline">Privacy Policy</a>
+                          <FormLabel className="text-sm text-muted-foreground">
+                            I agree to the <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>
                           </FormLabel>
                           <FormMessage />
                         </div>
@@ -297,7 +300,7 @@ export default function AuthModal() {
                   
                   <Button 
                     type="submit" 
-                    className="w-full"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={registerMutation.isPending}
                   >
                     {registerMutation.isPending ? "Creating Account..." : "Create Account"}

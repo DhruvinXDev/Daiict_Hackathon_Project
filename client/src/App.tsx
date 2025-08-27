@@ -7,6 +7,7 @@ import Sidebar from "@/components/ui/sidebar";
 import MobileHeader from "@/components/ui/mobile-header";
 import MobileNavbar from "@/components/ui/mobile-navbar";
 import Dashboard from "@/pages/dashboard";
+import HomePage from "@/pages/home";
 import ResumeBuilder from "@/pages/resume-builder";
 import JobMarket from "@/pages/job-market";
 import Networking from "@/pages/networking";
@@ -23,6 +24,8 @@ import { Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ProfileProvider } from "@/contexts/profile-context";
+import { ThemeProvider } from "@/contexts/theme-context";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // Protected route component
 function ProtectedRouteComponent({ component: Component, ...rest }: { component: React.ComponentType, path?: string }) {
@@ -42,13 +45,14 @@ function ProtectedRouteComponent({ component: Component, ...rest }: { component:
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-background">
       {isMobile && <MobileHeader />}
       <Sidebar />
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
         <Component />
       </main>
       {isMobile && <MobileNavbar />}
+      <ThemeToggle />
     </div>
   );
 }
@@ -68,6 +72,7 @@ function AuthenticatedRoutes() {
     <AuthProvider>
       <ProfileProvider>
         <Switch>
+          <Route path="/home" component={HomePage} />
           <Route path="/auth" component={AuthPage} />
           <ProtectedRoute path="/" component={Dashboard} />
           <ProtectedRoute path="/resume-builder" component={ResumeBuilder} />
@@ -90,8 +95,10 @@ function AuthenticatedRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthenticatedRoutes />
-      <Toaster />
+      <ThemeProvider>
+        <AuthenticatedRoutes />
+        <Toaster />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
